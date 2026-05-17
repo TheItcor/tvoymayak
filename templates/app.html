@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ТвойМаяк 🌊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #0f1628;
+  --glass: rgba(255,255,255,0.055);
+  --glass-b: rgba(255,255,255,0.11);
+  --glass-hover: rgba(255,255,255,0.09);
+  --accent: #6c8ef7;
+  --accent2: #9b7bea;
+  --accent-glow: rgba(108,142,247,0.25);
+  --text: #e8eaf6;
+  --muted: rgba(232,234,246,0.48);
+  --muted2: rgba(232,234,246,0.28);
+  --good: #6bffb8;
+  --bad: #ff7eb3;
+  --warn: #ffd97d;
+  --card-r: 24px;
+  --nav-h: 72px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Ambient orbs */
+.orbs { position: fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.orb { position:absolute; border-radius:50%; filter:blur(90px); opacity:0.18; }
+.orb-1 { width:600px;height:600px; background:radial-gradient(circle,#4a7bef,transparent); top:-200px;left:-200px; animation:drift1 16s ease-in-out infinite; }
+.orb-2 { width:450px;height:450px; background:radial-gradient(circle,#9b7bea,transparent); bottom:-150px;right:-150px; animation:drift2 14s ease-in-out infinite; }
+.orb-3 { width:300px;height:300px; background:radial-gradient(circle,#4affd8,transparent); top:40%;left:30%; animation:drift3 20s ease-in-out infinite; opacity:0.08; }
+@keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,40px)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,20px) scale(1.1)} }
+
+body::after {
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:0.5;
+}
+
+/* Header */
+.header {
+  position: sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding: 20px 20px 12px;
+  background: rgba(10,14,26,0.7);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.logo { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+.logo span { background:linear-gradient(135deg,#e8eaf6,var(--accent2)); -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+
+.header-right { display:flex; gap:10px; align-items:center; }
+
+.streak-badge {
+  display:flex;align-items:center;gap:6px;
+  background: rgba(255,193,55,0.15);
+  border: 1px solid rgba(255,193,55,0.25);
+  border-radius:20px;padding:6px 14px;
+  font-size:13px;font-weight:700;color:#ffc137;
+}
+
+.avatar {
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:14px;cursor:pointer;
+  border:2px solid rgba(255,255,255,0.1);
+  position:relative;
+}
+
+.avatar-menu {
+  position:absolute;top:48px;right:0;z-index:200;
+  background:rgba(15,22,40,0.95);
+  border:1px solid var(--glass-b);
+  border-radius:16px;padding:8px;
+  backdrop-filter:blur(20px);
+  min-width:160px;
+  display:none;
+  animation:fadeDown 0.2s ease;
+  box-shadow:0 16px 40px rgba(0,0,0,0.4);
+}
+.avatar-menu.open { display:block; }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+.avatar-menu button {
+  width:100%;text-align:left;padding:10px 14px;
+  background:none;border:none;color:var(--muted);
+  font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;
+  border-radius:10px;cursor:pointer;transition:all 0.15s;
+}
+.avatar-menu button:hover { background:var(--glass-hover);color:var(--text); }
+.avatar-menu .logout-btn { color:#ff7eb3; }
+
+/* Tab switcher */
+.tab-nav {
+  display:flex;
+  background: rgba(0,0,0,0.3);
+  border:1px solid var(--glass-b);
+  border-radius:18px;padding:5px;
+  margin:16px 16px 0;
+  gap:4px;
+  position:relative;z-index:10;
+}
+
+.tab-nav-btn {
+  flex:1;padding:10px;
+  border:none;background:transparent;
+  color:var(--muted);font-family:'Manrope',sans-serif;
+  font-size:14px;font-weight:700;border-radius:13px;
+  cursor:pointer;transition:all 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.tab-nav-btn.active {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white;
+  box-shadow:0 4px 20px var(--accent-glow);
+}
+
+/* Pages */
+.page { display:none; padding:16px 16px calc(var(--nav-h) + 16px); position:relative;z-index:1; }
+.page.active { display:block; animation:fadeIn 0.35s cubic-bezier(0.22,1,0.36,1); }
+@keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* Glass card */
+.glass-card {
+  background:var(--glass);
+  border:1px solid var(--glass-b);
+  border-radius:var(--card-r);
+  padding:20px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  margin-bottom:14px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.03) inset, 0 8px 32px rgba(0,0,0,0.2);
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+
+/* Feed entry */
+.feed-entry { cursor:pointer; }
+.feed-entry:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(0,0,0,0.3); }
+
+.entry-date { font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2); margin-bottom:6px; display:flex;align-items:center;gap:8px; }
+
+.entry-date .dot { width:8px;height:8px;border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good); }
+
+.entry-title { font-size:18px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px; }
+.entry-desc { font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:10px; }
+
+.mood-bar { display:flex;gap:6px;margin-bottom:10px; }
+.mood-pip { width:28px;height:5px;border-radius:3px;background:rgba(255,255,255,0.1); }
+.mood-pip.fill-good { background:var(--good); }
+.mood-pip.fill-warn { background:var(--warn); }
+.mood-pip.fill-bad { background:var(--bad); }
+
+.entry-photo { width:100%;border-radius:14px;margin-bottom:12px;max-height:200px;object-fit:cover;border:1px solid var(--glass-b); }
+
+.ai-tag {
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(108,142,247,0.12);
+  border:1px solid rgba(108,142,247,0.2);
+  border-radius:10px;padding:4px 10px;
+  font-size:11px;font-weight:700;color:var(--accent);
+  margin-bottom:10px;
+}
+
+.ai-text { font-size:13px;color:var(--muted);line-height:1.6; }
+
+/* Insight card */
+.insight-card {
+  background: linear-gradient(135deg, rgba(108,142,247,0.12), rgba(155,123,234,0.12));
+  border:1px solid rgba(108,142,247,0.2);
+}
+.insight-label { font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:8px; }
+.insight-label::before { content:'';width:8px;height:8px;background:rgba(108,142,247,0.5);border-radius:50%;box-shadow:0 0 8px var(--accent); display:block; }
+.insight-title { font-size:20px;font-weight:800;margin-bottom:10px;letter-spacing:-0.3px; }
+.insight-text { font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px; }
+
+.insight-actions { display:flex;align-items:center;justify-content:space-between; }
+.rec-btn {
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(108,142,247,0.18);border:1px solid rgba(108,142,247,0.25);
+  border-radius:10px;padding:7px 14px;
+  font-size:12px;font-weight:700;color:var(--accent);
+  cursor:pointer;transition:all 0.2s;
+}
+.rec-btn:hover { background:rgba(108,142,247,0.28); }
+
+.icon-btns { display:flex;gap:8px; }
+.icon-btn {
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid var(--glass-b);
+  background:var(--glass);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;
+  transition:all 0.2s;color:var(--muted);
+  backdrop-filter:blur(10px);
+}
+.icon-btn:hover { background:var(--glass-hover);color:var(--text);transform:scale(1.1); }
+
+/* Streak bar */
+.streak-row { display:flex;gap:8px;margin-top:12px; }
+.day-pill {
+  flex:1;padding:8px 4px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--glass-b);
+  border-radius:10px;
+  text-align:center;font-size:11px;font-weight:700;
+  color:var(--muted2);
+  transition:all 0.2s;
+}
+.day-pill.done { background:linear-gradient(135deg,rgba(108,142,247,0.25),rgba(155,123,234,0.25)); border-color:rgba(108,142,247,0.3); color:var(--accent); }
+.day-pill.today { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; box-shadow:0 4px 16px var(--accent-glow); border:none; }
+
+/* Today page */
+.section-label {
+  font-size:12px;font-weight:700;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--muted2);
+  margin-bottom:12px;margin-top:4px;
+}
+
+/* Mood selector */
+.mood-grid { display:flex;gap:8px;flex-wrap:nowrap; }
+
+.mood-option {
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 4px;
+  border:1.5px solid var(--glass-b);
+  border-radius:16px;
+  cursor:pointer;
+  transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
+  background:var(--glass);
+  position:relative;
+  overflow:hidden;
+}
+.mood-option::before {
+  content:'';position:absolute;inset:0;
+  background:var(--mood-color,transparent);
+  opacity:0;transition:opacity 0.25s;
+}
+.mood-option.selected {
+  border-color:var(--mood-color,var(--accent));
+  box-shadow:0 0 0 2px var(--mood-color,var(--accent)), 0 8px 24px rgba(0,0,0,0.3);
+  transform:scale(1.05);
+}
+.mood-option.selected::before { opacity:0.12; }
+
+.mood-emoji { font-size:24px;position:relative;z-index:1; }
+.mood-label { font-size:9px;font-weight:700;color:var(--muted);text-align:center;position:relative;z-index:1;letter-spacing:0.03em; }
+
+/* Checkboxes */
+.checkbox-list { display:flex;flex-direction:column;gap:8px; }
+.checkbox-item {
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  background:var(--glass);
+  border:1px solid var(--glass-b);
+  border-radius:14px;
+  cursor:pointer;
+  transition:all 0.2s;
+  user-select:none;
+}
+.checkbox-item:hover { background:var(--glass-hover); }
+.checkbox-item.checked { background:rgba(107,255,184,0.07);border-color:rgba(107,255,184,0.2); }
+
+.cb-box {
+  width:20px;height:20px;border-radius:7px;
+  border:2px solid var(--glass-b);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.2s;font-size:11px;
+}
+.checkbox-item.checked .cb-box { background:var(--good);border-color:var(--good);box-shadow:0 0 10px rgba(107,255,184,0.3); }
+.cb-label { font-size:14px;font-weight:600; }
+.checkbox-item.checked .cb-label { color:var(--good); }
+
+.add-checkbox-btn {
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;
+  border:1px dashed rgba(255,255,255,0.15);
+  border-radius:14px;cursor:pointer;
+  color:var(--muted);font-size:13px;font-weight:600;
+  background:transparent;font-family:'Manrope',sans-serif;
+  transition:all 0.2s;
+}
+.add-checkbox-btn:hover { background:var(--glass);border-color:var(--glass-b);color:var(--text); }
+
+/* Textarea */
+textarea {
+  width:100%;min-height:120px;
+  padding:14px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--glass-b);
+  border-radius:16px;
+  color:var(--text);
+  font-family:'Manrope',sans-serif;
+  font-size:14px;line-height:1.6;
+  resize:vertical;outline:none;
+  transition:all 0.2s;
+}
+textarea::placeholder { color:var(--muted2); }
+textarea:focus { border-color:var(--accent);background:rgba(108,142,247,0.06);box-shadow:0 0 0 3px rgba(108,142,247,0.12); }
+
+/* Photo upload */
+.photo-area {
+  border:1.5px dashed rgba(255,255,255,0.15);
+  border-radius:18px;padding:24px;
+  text-align:center;cursor:pointer;
+  transition:all 0.2s;
+  position:relative;overflow:hidden;
+}
+.photo-area:hover { border-color:var(--accent);background:rgba(108,142,247,0.05); }
+.photo-area img { width:100%;border-radius:12px;display:block; }
+.photo-placeholder { color:var(--muted2);font-size:13px; }
+.photo-placeholder .icon { font-size:32px;margin-bottom:8px; }
+input[type="file"] { position:absolute;inset:0;opacity:0;cursor:pointer; }
+
+/* Save button */
+.save-btn {
+  width:100%;padding:16px;margin-top:4px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;border-radius:18px;
+  color:white;font-family:'Manrope',sans-serif;
+  font-size:16px;font-weight:800;
+  cursor:pointer;letter-spacing:0.01em;
+  box-shadow:0 8px 32px var(--accent-glow);
+  transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+.save-btn:hover { transform:translateY(-2px);box-shadow:0 12px 40px var(--accent-glow); }
+.save-btn:active { transform:translateY(0); }
+.save-btn:disabled { opacity:0.6;cursor:not-allowed;transform:none; }
+
+/* AI Result section */
+.ai-result-card {
+  background:linear-gradient(135deg,rgba(108,142,247,0.1),rgba(155,123,234,0.1));
+  border:1px solid rgba(108,142,247,0.2);
+  border-radius:20px;padding:20px;margin-top:14px;
+  animation:fadeIn 0.5s ease;
+}
+.ai-result-title { font-size:14px;font-weight:800;margin-bottom:8px;color:var(--accent);display:flex;align-items:center;gap:8px; }
+.ai-result-text { font-size:13px;color:var(--muted);line-height:1.65; }
+
+/* Chat (support modal) */
+.chat-overlay {
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(10px);
+  display:none;align-items:flex-end;
+}
+.chat-overlay.open { display:flex; animation:overlayIn 0.3s ease; }
+@keyframes overlayIn { from{opacity:0} to{opacity:1} }
+
+.chat-sheet {
+  width:100%;max-width:480px;margin:0 auto;
+  background:rgba(12,18,35,0.98);
+  border:1px solid var(--glass-b);
+  border-radius:28px 28px 0 0;
+  padding:0;
+  height:70vh;
+  display:flex;flex-direction:column;
+  animation:sheetUp 0.4s cubic-bezier(0.22,1,0.36,1);
+  backdrop-filter:blur(40px);
+}
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+.chat-header {
+  padding:16px 20px;
+  border-bottom:1px solid var(--glass-b);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.chat-header h3 { font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px; }
+.chat-close { background:var(--glass);border:none;color:var(--muted);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.2s; }
+.chat-close:hover { background:var(--glass-hover);color:var(--text); }
+
+.chat-messages {
+  flex:1;overflow-y:auto;padding:16px;
+  display:flex;flex-direction:column;gap:10px;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent;
+}
+
+.msg {
+  max-width:85%;padding:10px 14px;border-radius:16px;
+  font-size:13px;line-height:1.55;animation:msgIn 0.25s ease;
+}
+@keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.msg.user { background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;align-self:flex-end;border-bottom-right-radius:4px; }
+.msg.ai { background:var(--glass);border:1px solid var(--glass-b);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px; }
+.msg.typing { color:var(--muted); }
+
+.chat-input-row {
+  padding:12px 16px;border-top:1px solid var(--glass-b);
+  display:flex;gap:10px;align-items:center;
+}
+.chat-input {
+  flex:1;padding:12px 14px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--glass-b);border-radius:14px;
+  color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;
+  outline:none;transition:all 0.2s;
+}
+.chat-input:focus { border-color:var(--accent);background:rgba(108,142,247,0.08); }
+.chat-send {
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:all 0.2s;box-shadow:0 4px 16px var(--accent-glow);
+  flex-shrink:0;
+}
+.chat-send:hover { transform:scale(1.1); }
+
+/* Input modal */
+.input-modal {
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.input-modal.open { display:flex; animation:overlayIn 0.2s ease; }
+.input-modal-card {
+  width:100%;max-width:400px;
+  background:rgba(12,18,35,0.98);
+  border:1px solid var(--glass-b);
+  border-radius:24px;padding:24px;
+  backdrop-filter:blur(40px);
+  animation:fadeIn 0.3s ease;
+}
+.input-modal-card h4 { font-size:16px;font-weight:800;margin-bottom:16px; }
+.input-modal-card input[type="text"] {
+  width:100%;padding:12px 14px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--glass-b);border-radius:12px;
+  color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;
+  outline:none;margin-bottom:14px;transition:all 0.2s;
+}
+.input-modal-card input:focus { border-color:var(--accent); }
+.modal-btns { display:flex;gap:10px; }
+.modal-btn {
+  flex:1;padding:12px;border:none;border-radius:12px;
+  font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all 0.2s;
+}
+.modal-btn.cancel { background:var(--glass);color:var(--muted);border:1px solid var(--glass-b); }
+.modal-btn.confirm { background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;box-shadow:0 4px 16px var(--accent-glow); }
+.modal-btn:hover { transform:translateY(-1px); }
+
+/* Loading skeleton */
+.skeleton { background:linear-gradient(90deg,rgba(255,255,255,0.05) 25%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.sk-title { height:20px;width:70%;margin-bottom:10px; }
+.sk-text { height:14px;width:100%;margin-bottom:6px; }
+.sk-text.w80 { width:80%; }
+
+/* Empty state */
+.empty-state { text-align:center;padding:60px 20px;color:var(--muted2); }
+.empty-state .icon { font-size:48px;margin-bottom:16px;opacity:0.6; }
+.empty-state p { font-size:14px;line-height:1.6; }
+
+/* Spinner */
+.spin { display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:sp 0.5s linear infinite;vertical-align:middle;margin-right:6px; }
+@keyframes sp { to{transform:rotate(360deg)} }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08);border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo"><span>ТвойМаяк</span> 🌊</div>
+  <div class="header-right">
+    <div class="streak-badge" id="streak-badge">⭐ 0</div>
+    <div style="position:relative;">
+      <div class="avatar" id="avatar-btn" onclick="toggleMenu()">А</div>
+      <div class="avatar-menu" id="avatar-menu">
+        <div id="menu-username" style="padding:8px 14px 4px;font-size:12px;color:var(--muted2);font-weight:700;"></div>
+        <button class="logout-btn" onclick="doLogout()">Выйти</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Tab nav -->
+<div class="tab-nav">
+  <button class="tab-nav-btn active" onclick="switchPage('feed')">Лента</button>
+  <button class="tab-nav-btn" onclick="switchPage('today')">Твой день</button>
+</div>
+
+<!-- FEED PAGE -->
+<div class="page active" id="page-feed">
+  <div id="feed-content">
+    <!-- Streak card -->
+    <div class="glass-card" style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">СЕРИЯ 🔥 <span id="streak-text">0</span> ДНЕЙ ПОДРЯД</div>
+      <div class="streak-row" id="streak-days"></div>
+    </div>
+
+    <!-- Insight card -->
+    <div class="glass-card insight-card" id="insight-card" style="display:none;">
+      <div class="insight-label">ИНСАЙТ НЕДЕЛИ</div>
+      <div class="insight-title" id="insight-title">Загрузка...</div>
+      <div class="insight-text" id="insight-text"></div>
+      <div class="insight-actions">
+        <button class="rec-btn" onclick="openChat(3)">✦ рекомендация</button>
+        <div class="icon-btns">
+          <div class="icon-btn">♡</div>
+          <div class="icon-btn">↗</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed entries -->
+    <div id="feed-entries"></div>
+
+    <div id="feed-loading">
+      <div class="glass-card">
+        <div class="skeleton sk-title"></div>
+        <div class="skeleton sk-text"></div>
+        <div class="skeleton sk-text w80"></div>
+      </div>
+      <div class="glass-card">
+        <div class="skeleton sk-title"></div>
+        <div class="skeleton sk-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TODAY PAGE -->
+<div class="page" id="page-today">
+  <div style="padding-top:16px;">
+
+    <!-- Mood -->
+    <div class="glass-card">
+      <div class="section-label">Как ты сегодня?</div>
+      <div class="mood-grid" id="mood-grid">
+        <div class="mood-option" style="--mood-color:#ff6b6b" data-mood="1" onclick="selectMood(1)">
+          <div class="mood-emoji">😔</div><div class="mood-label">Ужасно</div>
+        </div>
+        <div class="mood-option" style="--mood-color:#ff9f7b" data-mood="2" onclick="selectMood(2)">
+          <div class="mood-emoji">😟</div><div class="mood-label">Плохо</div>
+        </div>
+        <div class="mood-option" style="--mood-color:#ffd97d" data-mood="3" onclick="selectMood(3)">
+          <div class="mood-emoji">😐</div><div class="mood-label">Норм</div>
+        </div>
+        <div class="mood-option" style="--mood-color:#a0e97a" data-mood="4" onclick="selectMood(4)">
+          <div class="mood-emoji">😊</div><div class="mood-label">Хорошо</div>
+        </div>
+        <div class="mood-option" style="--mood-color:#6bffb8" data-mood="5" onclick="selectMood(5)">
+          <div class="mood-emoji">🤩</div><div class="mood-label">Отлично</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkboxes -->
+    <div class="glass-card">
+      <div class="section-label">Что сделал сегодня?</div>
+      <div class="checkbox-list" id="checkbox-list"></div>
+      <button class="add-checkbox-btn" onclick="openAddCheckbox()" style="width:100%;margin-top:10px;">
+        + Добавить задачу
+      </button>
+    </div>
+
+    <!-- Description -->
+    <div class="glass-card">
+      <div class="section-label">Как прошёл день</div>
+      <textarea id="day-desc" placeholder="Что случилось? Как себя чувствуешь?..."></textarea>
+    </div>
+
+    <!-- Photo -->
+    <div class="glass-card">
+      <div class="section-label">Фото дня</div>
+      <div class="photo-area" id="photo-area">
+        <input type="file" accept="image/*" onchange="handlePhoto(event)">
+        <div class="photo-placeholder" id="photo-placeholder">
+          <div class="icon">📷</div>
+          <div>Добавить фото</div>
+        </div>
+        <img id="photo-preview" style="display:none;" alt="фото дня">
+      </div>
+    </div>
+
+    <button class="save-btn" id="save-btn" onclick="saveDay()">Сохранить день ✦</button>
+
+    <!-- AI Result -->
+    <div id="ai-result" style="display:none;"></div>
+
+    <!-- Emotional support prompt (if bad mood) -->
+    <div id="support-prompt" class="ai-result-card" style="display:none;">
+      <div class="ai-result-title">🫂 Хочешь поговорить?</div>
+      <div class="ai-result-text" id="support-text"></div>
+      <button class="rec-btn" style="margin-top:12px;" onclick="openChat(currentMood)">Открыть чат с Маяком</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT OVERLAY -->
+<div class="chat-overlay" id="chat-overlay" onclick="closeChatOutside(event)">
+  <div class="chat-sheet">
+    <div class="chat-header">
+      <h3>🌊 Маяк <span style="font-size:11px;font-weight:500;color:var(--good);margin-left:4px;">• онлайн</span></h3>
+      <button class="chat-close" onclick="closeChat()">×</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" type="text" placeholder="Напиши что-нибудь...">
+      <button class="chat-send" onclick="sendChatMsg()">→</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CHECKBOX MODAL -->
+<div class="input-modal" id="add-cb-modal" onclick="closeModalOutside(event)">
+  <div class="input-modal-card">
+    <h4>Добавить задачу</h4>
+    <input type="text" id="new-cb-input" placeholder="Название задачи...">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeAddCheckbox()">Отмена</button>
+      <button class="modal-btn confirm" onclick="confirmAddCheckbox()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+let currentPage = 'feed';
+let currentMood = null;
+let checkboxes = [];
+let photoData = null;
+let chatHistory = [];
+let chatMood = 3;
+let username = '';
+
+const DAY_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const MOOD_COLORS = {1:'#ff6b6b',2:'#ff9f7b',3:'#ffd97d',4:'#a0e97a',5:'#6bffb8'};
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+(async () => {
+  await loadMe();
+  loadFeed();
+  loadTodayEntry();
+})();
+
+async function loadMe() {
+  const r = await fetch('/api/me');
+  if (r.status === 401) { location.reload(); return; }
+  const d = await r.json();
+  username = d.username;
+  document.getElementById('avatar-btn').textContent = username[0].toUpperCase();
+  document.getElementById('menu-username').textContent = '@' + username;
+  document.getElementById('streak-badge').textContent = '⭐ ' + d.streak;
+  document.getElementById('streak-text').textContent = d.streak;
+  buildStreakDays(d.streak);
+}
+
+function buildStreakDays(streak) {
+  const container = document.getElementById('streak-days');
+  const today = new Date();
+  const dow = today.getDay(); // 0=Sun
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push(d);
+  }
+  container.innerHTML = '';
+  days.forEach((d, i) => {
+    const div = document.createElement('div');
+    const isToday = i === 6;
+    const filled = (streak > 0) && (6 - i < streak);
+    const label = DAY_LABELS[(d.getDay() + 6) % 7];
+    div.className = 'day-pill' + (isToday ? ' today' : filled ? ' done' : '');
+    div.textContent = label;
+    container.appendChild(div);
+  });
+}
+
+// ─── Pages ────────────────────────────────────────────────────────────────────
+function switchPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ─── Feed ─────────────────────────────────────────────────────────────────────
+async function loadFeed() {
+  const r = await fetch('/api/feed');
+  const d = await r.json();
+  document.getElementById('feed-loading').style.display = 'none';
+
+  if (d.weekly_insight) {
+    const ic = document.getElementById('insight-card');
+    ic.style.display = '';
+    const lines = d.weekly_insight.split('\n');
+    document.getElementById('insight-title').textContent = lines[0] || 'Инсайт недели';
+    document.getElementById('insight-text').textContent = lines.slice(1).join(' ').trim() || d.weekly_insight;
+  }
+
+  const container = document.getElementById('feed-entries');
+  if (!d.entries.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🌊</div><p>Ещё нет записей.<br>Начни заполнять свой день!</p></div>';
+    return;
+  }
+  container.innerHTML = '';
+  d.entries.forEach(entry => {
+    container.appendChild(buildEntryCard(entry));
+  });
+}
+
+function buildEntryCard(entry) {
+  const el = document.createElement('div');
+  el.className = 'glass-card feed-entry';
+
+  const dt = new Date(entry.entry_date + 'T12:00:00');
+  const dateStr = dt.toLocaleDateString('ru-RU', {weekday:'long',day:'numeric',month:'long'}).toUpperCase();
+  const mood = entry.mood || 3;
+  const moodLabel = ['','Ужасно','Плохо','Нормально','Хорошо','Отлично'][mood];
+  const moodEmoji = ['','😔','😟','😐','😊','🤩'][mood];
+  const moodColor = MOOD_COLORS[mood];
+
+  let moodPips = '';
+  for (let i = 1; i <= 5; i++) {
+    const cls = i <= mood ? (mood <= 2 ? 'fill-bad' : mood === 3 ? 'fill-warn' : 'fill-good') : '';
+    moodPips += `<div class="mood-pip ${cls}"></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="entry-date"><div class="dot" style="background:${moodColor};box-shadow:0 0 8px ${moodColor}"></div>${dateStr}</div>
+    <div class="entry-title">${moodEmoji} ${entry.ai_summary ? entry.ai_summary.split('.')[0] : (moodLabel + ' день')}</div>
+    <div class="mood-bar">${moodPips}</div>
+    ${entry.photo_data ? `<img class="entry-photo" src="${entry.photo_data}" alt="">` : ''}
+    ${entry.description ? `<div class="entry-desc">${entry.description.slice(0,200)}${entry.description.length > 200 ? '...' : ''}</div>` : ''}
+    ${entry.ai_summary ? `<div class="ai-tag">✦ ИИ саммари</div><div class="ai-text">${entry.ai_summary}</div>` : ''}
+    ${entry.ai_recommendation ? `<div class="ai-tag" style="margin-top:10px;color:var(--accent2);border-color:rgba(155,123,234,0.25);background:rgba(155,123,234,0.1);">💡 Рекомендация</div><div class="ai-text">${entry.ai_recommendation}</div>` : ''}
+  `;
+  return el;
+}
+
+// ─── Today ────────────────────────────────────────────────────────────────────
+async function loadTodayEntry() {
+  const r = await fetch('/api/today');
+  const d = await r.json();
+  if (!d) {
+    // Default checkboxes
+    checkboxes = [
+      {id:1, label:'Сделал зарядку', done:false},
+      {id:2, label:'Выпил воды', done:false},
+      {id:3, label:'Хорошо поел', done:false},
+    ];
+    renderCheckboxes();
+    return;
+  }
+  // Restore state
+  if (d.mood) selectMood(d.mood, true);
+  if (d.description) document.getElementById('day-desc').value = d.description;
+  if (d.checkboxes) { checkboxes = d.checkboxes; renderCheckboxes(); }
+  if (d.photo_data) {
+    photoData = d.photo_data;
+    document.getElementById('photo-preview').src = d.photo_data;
+    document.getElementById('photo-preview').style.display = 'block';
+    document.getElementById('photo-placeholder').style.display = 'none';
+  }
+  if (d.ai_summary || d.ai_recommendation) showAiResult(d.ai_summary, d.ai_recommendation);
+}
+
+function selectMood(mood, silent=false) {
+  currentMood = mood;
+  document.querySelectorAll('.mood-option').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.mood) === mood);
+  });
+  if (!silent && mood <= 2) {
+    document.getElementById('support-prompt').style.display = 'block';
+    document.getElementById('support-text').textContent = mood === 1
+      ? 'Сегодня тяжело. Я рядом — давай поговорим о том, что ты чувствуешь, и найдём способ стать немного лучше.'
+      : 'Бывают и такие дни. Хочешь обсудить, что происходит? Я помогу разобраться в чувствах.';
+  }
+}
+
+// ─── Checkboxes ──────────────────────────────────────────────────────────────
+function renderCheckboxes() {
+  const list = document.getElementById('checkbox-list');
+  list.innerHTML = '';
+  checkboxes.forEach(cb => {
+    const el = document.createElement('div');
+    el.className = 'checkbox-item' + (cb.done ? ' checked' : '');
+    el.innerHTML = `<div class="cb-box">${cb.done ? '✓' : ''}</div><div class="cb-label">${cb.label}</div>`;
+    el.onclick = () => toggleCb(cb.id);
+    list.appendChild(el);
+  });
+}
+
+function toggleCb(id) {
+  const cb = checkboxes.find(c => c.id === id);
+  if (cb) { cb.done = !cb.done; renderCheckboxes(); }
+}
+
+function openAddCheckbox() {
+  document.getElementById('add-cb-modal').classList.add('open');
+  setTimeout(() => document.getElementById('new-cb-input').focus(), 100);
+}
+function closeAddCheckbox() {
+  document.getElementById('add-cb-modal').classList.remove('open');
+  document.getElementById('new-cb-input').value = '';
+}
+function confirmAddCheckbox() {
+  const val = document.getElementById('new-cb-input').value.trim();
+  if (!val) return;
+  checkboxes.push({id: Date.now(), label: val, done: false});
+  renderCheckboxes();
+  closeAddCheckbox();
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('add-cb-modal')) closeAddCheckbox();
+}
+
+document.getElementById('new-cb-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddCheckbox(); });
+
+// ─── Photo ────────────────────────────────────────────────────────────────────
+function handlePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoData = e.target.result;
+    document.getElementById('photo-preview').src = photoData;
+    document.getElementById('photo-preview').style.display = 'block';
+    document.getElementById('photo-placeholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── Save ─────────────────────────────────────────────────────────────────────
+async function saveDay() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Сохраняю...';
+
+  const payload = {
+    mood: currentMood,
+    description: document.getElementById('day-desc').value,
+    checkboxes,
+    photo_data: photoData,
+  };
+
+  try {
+    const r = await fetch('/api/today', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const d = await r.json();
+    btn.innerHTML = '✓ Сохранено';
+    btn.style.background = 'linear-gradient(135deg,#6bffb8,#4aefb8)';
+    btn.style.color = '#0a1a12';
+    showAiResult(d.ai_summary, d.ai_recommendation);
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = 'Сохранить день ✦';
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 2500);
+    // Refresh streak
+    loadMe();
+  } catch {
+    btn.disabled = false;
+    btn.innerHTML = 'Сохранить день ✦';
+  }
+}
+
+function showAiResult(summary, rec) {
+  const el = document.getElementById('ai-result');
+  el.style.display = 'block';
+  el.innerHTML = `
+    ${summary ? `<div class="ai-result-card">
+      <div class="ai-result-title">✦ Саммари дня</div>
+      <div class="ai-result-text">${summary}</div>
+    </div>` : ''}
+    ${rec ? `<div class="ai-result-card" style="margin-top:10px;border-color:rgba(155,123,234,0.2);background:linear-gradient(135deg,rgba(155,123,234,0.1),rgba(108,142,247,0.1));">
+      <div class="ai-result-title" style="color:var(--accent2);">💡 Рекомендация</div>
+      <div class="ai-result-text">${rec}</div>
+    </div>` : ''}
+  `;
+}
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+function openChat(mood) {
+  chatMood = mood;
+  chatHistory = [];
+  const messages = document.getElementById('chat-messages');
+  messages.innerHTML = '';
+  document.getElementById('chat-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  const greeting = mood <= 2
+    ? 'Привет. Я здесь, рядом. Расскажи, что сейчас происходит? 🌊'
+    : 'Привет! Как настроение? Расскажи о своём дне 🌊';
+  appendMsg('ai', greeting);
+  chatHistory.push({role:'assistant', content: greeting});
+  document.getElementById('chat-input').focus();
+}
+
+function closeChat() {
+  document.getElementById('chat-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeChatOutside(e) {
+  if (e.target === document.getElementById('chat-overlay')) closeChat();
+}
+
+function appendMsg(role, text) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + role;
+  el.textContent = text;
+  const container = document.getElementById('chat-messages');
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  appendMsg('user', text);
+  chatHistory.push({role:'user', content: text});
+
+  const typing = document.createElement('div');
+  typing.className = 'msg ai typing';
+  typing.textContent = 'Маяк печатает...';
+  document.getElementById('chat-messages').appendChild(typing);
+  document.getElementById('chat-messages').scrollTop = 99999;
+
+  const r = await fetch('/api/chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({message: text, mood: chatMood, history: chatHistory})
+  });
+  const d = await r.json();
+  typing.remove();
+  appendMsg('ai', d.reply);
+  chatHistory.push({role:'assistant', content: d.reply});
+}
+
+document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMsg(); });
+
+// ─── Avatar menu ──────────────────────────────────────────────────────────────
+function toggleMenu() {
+  document.getElementById('avatar-menu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.avatar') && !e.target.closest('.avatar-menu')) {
+    document.getElementById('avatar-menu').classList.remove('open');
+  }
+});
+
+async function doLogout() {
+  await fetch('/api/logout', {method:'POST'});
+  location.reload();
+}
+</script>
+</body>
+</html>
